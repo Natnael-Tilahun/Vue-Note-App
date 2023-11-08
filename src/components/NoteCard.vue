@@ -1,20 +1,41 @@
 <script lang="ts" setup>
+import { saveNoteKey } from '@/injectionKey'
+import { inject, ref } from 'vue'
+
+// props
 const props = defineProps<{
   note: {
     id: string
     title: string
     content: string
-    date: Date
+    date: string
   }
 }>()
 
+// local refs
+const notes = ref({
+  title: props.note.title,
+  content: props.note.content,
+  date: new Date().toLocaleDateString()
+})
+
+// emits
 const emit = defineEmits(['update:note.title', 'deleteNoteHandler'])
-const saveNote = () => {
-  console.log('saved notess', props.note)
-}
+
+// functions
 const deleteNote = (id: string) => {
   emit('deleteNoteHandler', id)
 }
+
+// Expose the function to the template
+const saveNoteFromChild = (id: string, title: string, content: string) => {
+  if (saveNote) {
+    saveNote(id, title, content)
+  }
+}
+
+// Inject the provided updateNote function
+const saveNote = inject(saveNoteKey)
 </script>
 
 <template>
@@ -27,13 +48,13 @@ const deleteNote = (id: string) => {
         <input
           class="text-lg font-medium bg-inherit w-full h-fit focus:border-none outline-none placeholder:text-stone-700"
           placeholder="Note title here"
-          @input="$emit('update:note.title', ($event?.target as HTMLInputElement)?.value)"
+          v-model="notes.title"
         />
 
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
-          @click="saveNote"
+          @click="($event) => saveNoteFromChild(note.id, notes.title, notes.content)"
           class="w-9 h-9 fill-green-400 bg-black rounded-full p-2"
         >
           <path
@@ -43,12 +64,13 @@ const deleteNote = (id: string) => {
       </div>
       <textarea
         class="text-sm w-full h-[180px] bg-inherit focus:border-none outline-none placeholder:text-stone-500"
+        v-model="notes.content"
         placeholder="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatem excepturi eaque, repellat, recusandae modi culpa quidem repudiandae unde corrupti quasi provident illo doloribus minima, molestiae inventore accusantium odio odit libero!"
       ></textarea>
     </div>
 
     <div class="flex w-full justify-between items-center">
-      <p class="text-gray-700 text-sm">Nov 6, 2023</p>
+      <p class="text-gray-700 text-sm">{{ note.date }}</p>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="w-9 h-9 fill-white bg-black rounded-full p-2"

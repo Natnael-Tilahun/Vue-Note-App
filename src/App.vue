@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import SideBar from './components/SideBar.vue'
 import MainContent from './components/MainContent.vue'
-import { ref, type Ref } from 'vue'
+import { provide, ref, type Ref } from 'vue'
 import { nanoid } from 'nanoid'
+import { saveNoteKey } from './injectionKey'
 
 // interfaces
 interface Note {
   id: string
   title: string
   content: string
-  date: Date
+  date: string
   bgColor: string
 }
 
@@ -21,24 +22,18 @@ const notes: Ref<Note[]> = ref([
     id: nanoid(),
     title: 'Note Title',
     content: 'Note Content',
-    date: new Date(),
+    date: new Date().toLocaleDateString(),
     bgColor: 'bg-slate-200'
   }
 ])
 
-let storedNotes = localStorage.getItem('notes')
-
-if (storedNotes) {
-  notes.value = JSON.parse(storedNotes) as Note[]
-}
-
+// functions
 const selectColorHandler = (color: string) => {
-  // alert(color)
   notes.value.unshift({
     id: nanoid(),
-    title: 'Note Title',
-    content: 'Note Content',
-    date: new Date(),
+    title: '',
+    content: '',
+    date: new Date().toLocaleDateString(),
     bgColor: color
   })
 
@@ -48,6 +43,32 @@ const selectColorHandler = (color: string) => {
 const deleteNote = (noteId: string) => {
   notes.value = notes.value.filter((note) => note.id !== noteId)
   localStorage.setItem('notes', JSON.stringify(notes.value))
+}
+
+const saveNote = (noteId: string, newTitle: string, newContent: string) => {
+  const index = notes.value.findIndex((note) => note.id === noteId)
+  if (index !== -1) {
+    let previousNote = notes.value[index]
+    notes.value[index] = {
+      ...previousNote,
+      title: newTitle,
+      content: newContent,
+      date: new Date().toLocaleDateString()
+    }
+    localStorage.setItem('notes', JSON.stringify(notes.value))
+  } else {
+    console.log(`NOte with id ${noteId} not found.`)
+  }
+}
+
+// Provide updateNote function
+provide(saveNoteKey, saveNote)
+
+// logics
+let storedNotes = localStorage.getItem('notes')
+
+if (storedNotes) {
+  notes.value = JSON.parse(storedNotes) as Note[]
 }
 </script>
 
