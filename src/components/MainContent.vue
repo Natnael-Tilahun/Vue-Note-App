@@ -28,7 +28,6 @@ const deleteNoteHandler = (id: string) => {
 }
 
 const filterNotesHandler = computed(() => {
-  console.log('search value', searchValue.value)
   filteredNotes = props.notes.filter((note) =>
     note.title.toLocaleLowerCase().includes(searchValue.value.toLocaleLowerCase())
   )
